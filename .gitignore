@@ -1,0 +1,5 @@
+chroma_store/
+data/
+.venv/
+__pycache__/
+.env
