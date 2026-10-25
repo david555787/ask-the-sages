@@ -8,7 +8,6 @@ I used Codex to write and run the code. I used Claude to discuss project topics,
 
 ### Step 1: Chroma persistent smoke test
 
-Tool: Codex (GPT-6.1 Sol, Medium, as shown in the app)
 
 Prompt (verbatim):
 
@@ -42,3 +41,35 @@ What happened (my notes):
 - The installed Chroma version is 1.5.9.
 - The three distances were 0.60, 1.33 and 1.52. They are L2 distances, so they can be greater than 1.
 - The third result was a less relevant sentence, but it was still returned. This shows that top-k always returns k results, even when the match is weak.
+
+### Step 2: Download the Gutenberg texts
+
+Tool: Codex (GPT-6.1 Sol, Medium, as shown in the app)
+
+Prompt (verbatim):
+
+```
+Add a script download_data.py that downloads these four Project Gutenberg plain-text files using only the Python standard library (urllib), saving each into data/raw/ as UTF-8:
+
+- 4094 (Confucian Analects, Legge)
+- 216 (Tao Te Ching, Legge)
+- 1656 (Plato's Apology, Jowett)
+- 15877 (Marcus Aurelius, Meditations, George Long translation)
+
+URL pattern: https://www.gutenberg.org/cache/epub/{id}/pg{id}.txt
+
+Also write a function strip_boilerplate(text) that keeps only the text between the line starting with "*** START OF" and the line starting with "*** END OF" (exclude those marker lines). Do not parse chapters yet.
+
+For each file, print: the Title and Translator lines from the original header, the total character count after stripping, and the first 40 lines after the start marker. Skip downloading if the file already exists. Use .venv/bin/python explicitly. If a command fails because of network access or sandbox permissions, stop and tell me exactly what was blocked instead of working around it.
+
+Do not commit anything yet.
+```
+
+What happened (my notes):
+
+- Codex wrote download_data.py, but the download failed at the first file. The sandbox had no network access (DNS error), and after I approved a retry it failed with CERTIFICATE_VERIFY_FAILED.
+- Codex stopped and reported the error instead of disabling certificate verification, which is what I had asked for in the prompt. I did not want to turn off SSL checks.
+- I downloaded the four files myself with curl into data/raw/ (pg4094, pg216, pg1656, pg15877). The file sizes looked reasonable.
+- I checked the header of pg15877.txt and confirmed that the translator is George Long.
+- Looking at the files with grep and sed, I found that most of the Meditations file is not Marcus's text. It contains a biographical sketch, a philosophy essay and two indexes. The real text is only between "THE THOUGHTS" and "INDEXES." I need to exclude the rest before building the database.
+- The files use Windows (CRLF) line endings, so the parsing code must normalize them.
