@@ -181,3 +181,121 @@ What happened (my notes):
 - Codex listed the five places in pg4094.txt where the printed chapter number differs from the chapter's position in its book: Book 2 printed XVII (position 18), Book 3 printed XVII (position 18), Book 3 printed XXXII (position 23), Book 9 printed XXV (position 23), Book 14 printed XLVI (position 47). No code or data was changed in this step.
 - In these places the printed number repeats the previous chapter's number or is simply wrong, so the numbering in the Gutenberg text has errors.
 - I am keeping the section labels based on each chapter's position in its book. I will mention this in the README, because the section label is what I show to the user as the source of a passage.
+
+### Step 4: Load the chunks into a persistent Chroma collection
+
+Tool: Codex (GPT-6.1 Sol, Medium, as shown in the app)
+
+Prompt (verbatim):
+
+```
+Continue the same project. Read build_chunks.py and data/processed/chunks.jsonl first. Write load_db.py that loads all chunks into a persistent Chroma collection, using only the current Chroma API (no chromadb.Client(Settings(...)), no collection.persist()):
+
+- chromadb.PersistentClient(path="./chroma_store") and a collection named "sages" created with get_or_create_collection. Keep Chroma's default embedding function and default settings. Do not touch the existing "smoke" collection.
+- For each chunk: document = the text field (this is what gets embedded), id = the deterministic id already assigned in the file, metadata = tradition, work, section, translator, and words (the integer word count of the text).
+- Use collection.upsert (not add) in batches of 100 so re-running the script does not duplicate or silently skip anything.
+- First embed and upsert only the first 50 chunks, measure the time, and print an estimate for all chunks. Then continue with the rest, printing progress after every batch.
+- At the end print collection.count(), the number of chunks per tradition, and assert that the count equals the number of lines in chunks.jsonl. Running the script a second time must leave the count unchanged.
+
+Use .venv/bin/python. If a command is blocked by sandbox or network permissions (for example when loading the embedding model), stop and tell me exactly what was blocked instead of working around it. Do not commit anything.
+```
+
+What happened (my notes):
+
+- Codex created load_db.py and ran it twice. Run 1 started at count 0 and ended at 1,124. Run 2 started at 1,124 and ended at 1,124, so re-running with upsert does not create duplicates.
+- Timing: the first 50 chunks took 1.063 s in run 1 (estimated total 23.888 s) and 1.025 s in run 2 (estimated total 23.044 s).
+- Stored chunks per tradition: confucian 299, daoist 105, greek 105, stoic 615.
+- Codex checked the stored IDs, documents and metadata (including the integer "words" field) against chunks.jsonl in both runs. The first upsert had 50 chunks, then batches of 100, and the final batch had 74. The "smoke" collection was not touched.
+- A message "Selected model is at capacity. Please try a different model." appeared during the run, but Codex still finished and reported the results. An ONNX telemetry warning also appeared, and both runs succeeded.
+
+### Step 5a: Explore queries and look at the distances
+
+Tool: Codex (GPT-6.1 Sol, Medium, as shown in the app)
+
+Prompt (verbatim):
+
+```
+Continue the same project. Write explore_queries.py (a reusable exploration script, I may keep it in the repo as evidence) that opens the existing persistent collection "sages" in ./chroma_store and does NOT modify it. Use only the current Chroma API and .venv/bin/python.
+
+For each of these queries, run collection.query with n_results=5 and include documents, metadatas and distances:
+RELEVANT:
+1. "how do I stay calm when people treat me unfairly"
+2. "is it better to lead by force or by example"
+3. "someone who is afraid of dying"
+4. "what makes a person truly wise"
+5. "how should a ruler treat his people"
+UNRELATED (nothing in these books should match):
+6. "how to install Python on a Mac"
+7. "best pizza topping"
+8. "quantum chromodynamics"
+
+Print:
+a) For query 1 only, the full raw results object exactly as Chroma returns it.
+b) For every query, the 5 results as: rank, distance rounded to 3 decimals, tradition, work, section, words, and the first 150 characters of the text.
+c) For every query, the "keyword overlap" of each of the top 3 results: the lowercase alphabetic words of the query, after removing a small English stopword list (the, a, an, of, to, is, do, how, i, in, on, or, and, what, who, when, by, for, be, it, that, this, with, as, are, can, should, his, her, their, them, they, you, your, my, me), that also appear as whole words in the result text. Print the list (it may be empty).
+d) A summary table with one row per query: the best (smallest) distance, the 5th distance, and the number of words in the top-1 result.
+e) For query 1, additionally run the same query once per tradition with where={"tradition": "..."} (confucian, daoist, stoic, greek), n_results=1, and print the four best passages side by side with their distances.
+
+Do not change any other file. If a command is blocked by sandbox permissions, stop and tell me exactly what was blocked. Do not commit anything.
+```
+
+What happened (my notes):
+
+- Codex created and ran explore_queries.py. The best distance and the 5th distance (squared L2) for each query were:
+  - 1. unfair treatment: 1.306 / 1.378
+  - 2. force or example: 1.210 / 1.332
+  - 3. fear of dying: 0.875 / 1.164
+  - 4. true wisdom: 0.726 / 0.904
+  - 5. ruling people: 0.879 / 0.945
+  - 6. install Python: 1.769 / 1.816
+  - 7. pizza topping: 1.627 / 1.709
+  - 8. quantum chromodynamics: 1.504 / 1.540
+- The best distances of the three unrelated queries (1.504 to 1.769) are all larger than those of the five relevant queries (0.726 to 1.306). This is only based on eight queries.
+- Codex pointed out an odd result: for query 1, the search filtered to the Greek tradition found a passage at distance 1.210, which is closer than the best distance of the unfiltered search (1.306), but that passage was not in the unfiltered top five.
+- Codex verified that all 1,124 IDs, documents and metadata records were unchanged.
+
+### Step 5b: Check Chroma's results against a brute-force search
+
+Tool: Codex (GPT-6.1 Sol, Medium, as shown in the app)
+
+Prompt (verbatim):
+
+```
+Continue the same project. Do not modify the collection or any other file. Write check_recall.py that opens the persistent collection "sages" in ./chroma_store, loads all 1,124 stored embeddings with collection.get(include=["embeddings","documents","metadatas"]), embeds the query "how do I stay calm when people treat me unfairly" with the collection's own embedding function, and computes the exact squared-L2 distance to every stored embedding with numpy (brute force). Print the exact top 10 (rank, distance to 3 decimals, id, tradition, section, first 100 characters), next to the top 10 returned by collection.query for the same query with n_results=10. Report: whether the two top-5 lists are identical, the id of the Greek passage found at distance 1.210 in the earlier filtered search and its exact rank under brute force, and whether Chroma's distances match the brute-force distances to 3 decimals. Then repeat the comparison for all eight queries from explore_queries.py and print, per query, how many of the exact top 5 are also in Chroma's top 5 (0 to 5). Finally, read the Chroma documentation or source for the installed version in .venv (not from memory) and tell me whether the approximate-search settings of an existing collection (for example the HNSW search ef) can be changed and how, but do not change anything. Use .venv/bin/python. Do not commit anything.
+```
+
+What happened (my notes):
+
+- Codex created and ran check_recall.py. For query 1, the exact top-5 list and Chroma's top-5 list are not identical.
+- The Greek passage found earlier is apology-0075 (paragraph 63, part 1/4). Under brute force it is rank 1 with squared-L2 distance 1.210. Chroma's unfiltered top 10 misses it.
+- How many of the exact top 5 were also in Chroma's top 5: 4/5 for query 1 and query 7 (pizza topping), and 5/5 for queries 2, 3, 4, 5, 6 and 8.
+- All distances returned by Chroma match the brute-force distances to three decimals. The results agree whether comparing an actual n_results=5 search or the first five of n_results=10.
+- For the installed Chroma 1.5.9, an existing collection's HNSW ef_search can be changed through collection.modify(configuration=...). Codex verified this in the installed source (Collection.modify at line 281 and the updateable HNSW configuration fields at line 460). The current ef_search is 100. Codex did not change anything, and all 1,124 IDs, embeddings, documents, metadata and the collection configuration were unchanged.
+
+### Step 5c: A second set of candidate queries
+
+Tool: Codex (GPT-6.1 Sol, Medium, as shown in the app)
+
+Prompt (verbatim):
+
+```
+Update explore_queries.py so that the list of queries can be passed on the command line (one query per argument) instead of being hard-coded, keep exactly the same output format (ranked top 5 with distance, tradition, work, section, words, first 150 characters, and the keyword overlap of the top 3), and run it for these queries. Do not modify the collection or any other file. Use .venv/bin/python. Do not commit anything.
+
+1. "I keep comparing myself to people who are more successful than me"
+2. "should I speak up even if it makes me unpopular"
+3. "how can I be content with a simple life"
+4. "a leader who does not need to boast"
+5. "is it right to disobey an unjust order"
+6. "doing good without wanting credit"
+```
+
+What happened (my notes):
+
+- Codex updated explore_queries.py so that it takes one quoted query per command-line argument, and ran the six queries. Best distance / 5th distance:
+  - comparing myself to others: 1.205 / 1.311
+  - speaking up: 1.278 / 1.345
+  - simple life: 1.098 / 1.318
+  - leader without boasting: 1.105 / 1.186
+  - disobeying unjust orders: 0.980 / 1.122
+  - good without credit: 1.196 / 1.378
+- Codex verified that all 1,124 stored records were unchanged.
