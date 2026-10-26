@@ -135,3 +135,48 @@ Update build_chunks.py so it prints the same per-work statistics plus the total 
 What happened (my notes):
 
 - I added the final paragraph about oversized text to this prompt because of the conflict Codex had found in Step 3a (the 150-word limit versus never cutting a sentence), so the same rule would apply to all four works.
+- Codex finished with 1,124 chunks in total: Apology 105, Meditations 615, Analects 299, Tao Te Ching 105. Oversized units that had to be split: Apology 29 units into 87 pieces, Meditations 88 into 216, Analects 21 into 49, Tao Te Ching 24 into 48. Split pieces are labelled like "Chapter 39, part 1/2".
+- Codex inferred the following Tao Te Ching chapter starts from neighbouring chapters: 6, 11, 12, 20, 21, 24, 28, 40, 44, 45, 54, 58, 62, 68. It excluded the production credit, the title and translator front matter, the "PART 1." and "PART II." headings, and the Gutenberg boilerplate. After chapter 81 only blank lines remain.
+- The Analects text ends with Book XX, chapter 3, and nothing that is not Analects follows it. Codex excluded an editorial locator "[17.1]" and reported five places where the printed Roman-numeral chapter heading does not match the chapter's position in its book. It used the position for the section label.
+- Codex reported that its checks passed (20 Analects books, chapters 1 to 81 in the Tao Te Ching, no CJK characters in Analects chunks, all chunks within the word limit) and that a rebuild with the network blocked produced identical output.
+- I ran my own checks on data/processed/chunks.jsonl: 1,124 lines, tradition counts stoic 615 / confucian 299 / greek 105 / daoist 105, zero chunks containing CJK characters, zero containing "[Greek", "[A]", "INDEX" or "[17.1]". One chunk matched "produced by", which turned out to be a normal sentence from the Tao Te Ching ("All things are produced by the Tao...") and not Gutenberg boilerplate.
+- I looked at the eight shortest chunks. They showed three problems: a 6-word leftover piece of a split Analects chapter, an italic marker "_Odyssey_" left in the Meditations, and a label "chapters 1-1" for a single chapter. The next step fixes them.
+
+### Step 3c: Cleanup after checking the chunks
+
+Tool: Codex (GPT-6.1 Sol, Medium, as shown in the app)
+
+Prompt (verbatim):
+
+```
+Continue the same project. Read chunking.py, parsers.py and build_chunks.py first. Make these three small fixes without changing any parser's text extraction logic or the existing section numbering, and keep everything deterministic:
+
+1. Italic markers: remove the Gutenberg italic underscores (turn "_Odyssey_" into "Odyssey") in the text of all four works. Do not touch other characters.
+2. Tiny tails: when a long unit is split into parts, balance the parts so that no part is shorter than 25 words (distribute words more evenly across parts while still splitting only at the boundaries allowed by the existing splitting rule and keeping every part at most 150 words). If it is impossible to satisfy both limits for a unit, keep the best balance and tell me which units.
+3. Labels: when an Analects section covers a single chapter, write "Book N, chapter X" instead of "Book N, chapters X-X" (keep "chapters X-Y" for real ranges, and keep the ", part i/n" suffix).
+
+Then rebuild data/processed/chunks.jsonl and print: total chunks per work, how many chunks are shorter than 25 words per work (list their section labels and text if there are 15 or fewer in total), and confirm that no chunk contains an underscore. Check that the ids are still unique and that a second rebuild produces identical bytes. Use .venv/bin/python. Do not commit anything.
+```
+
+What happened (my notes):
+
+- Codex applied all three fixes and rebuilt chunks.jsonl. The total is still 1,124 chunks.
+- Every piece that comes from splitting a long unit now has between 25 and 150 words. There were no impossible cases.
+- No chunk contains an underscore anymore. Single-chapter Analects labels now read "chapter X". The extraction logic and section numbering did not change, the ids are unique, and a second offline rebuild gave identical bytes.
+- 75 chunks still have fewer than 25 words: Apology 1, Meditations 70, Analects 4, Tao Te Ching 0. They are complete units that were never split, for example short sayings that Marcus quotes in the Meditations. I am keeping them for now. I will see in the search results whether they cause noise.
+
+### Step 3d: Investigating the five Analects heading mismatches
+
+Tool: Codex (GPT-6.1 Sol, Medium, as shown in the app)
+
+Prompt (verbatim):
+
+```
+List the five Analects Roman-numeral heading mismatches you reported. For each one, show the printed heading line from the raw file, the chapter number your section label uses, and 2 lines of context before and after. Do not change any code or data yet.
+```
+
+What happened (my notes):
+
+- Codex listed the five places in pg4094.txt where the printed chapter number differs from the chapter's position in its book: Book 2 printed XVII (position 18), Book 3 printed XVII (position 18), Book 3 printed XXXII (position 23), Book 9 printed XXV (position 23), Book 14 printed XLVI (position 47). No code or data was changed in this step.
+- In these places the printed number repeats the previous chapter's number or is simply wrong, so the numbering in the Gutenberg text has errors.
+- I am keeping the section labels based on each chapter's position in its book. I will mention this in the README, because the section label is what I show to the user as the source of a passage.
