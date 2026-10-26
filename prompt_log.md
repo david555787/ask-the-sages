@@ -8,6 +8,7 @@ I used Codex to write and run the code. I used Claude to discuss project topics,
 
 ### Step 1: Chroma persistent smoke test
 
+Tool: Codex (GPT-6.1 Sol, Medium, as shown in the app)
 
 Prompt (verbatim):
 
