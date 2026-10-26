@@ -2,13 +2,15 @@
 
 Ask the Sages is a Python command-line app for asking questions, adding passages, inspecting what is stored, and deleting user-added passages. It retrieves one nearby passage from each available tradition and displays separate blocks with the source, translator, distance, and a strong/moderate/weak label; if the nearest passage is too far away, it refuses to show passages. It returns existing text from the collection rather than generating an answer or calling an external language-model API.
 
+## Why I made it
+
+I chose to undertake this project because I am interested in the philosophical ideas in different cultures and I also wanted to see how they would address similar life issues. I hope that users can directly ask questions in their own language and find relevant classic texts, even if they don't know which words were used in the original text.
+
 ## What is stored
 
 The built-in collection contains **1,124 English-language chunks**, each at most **150 whitespace-separated words**. A chunk is a searchable passage, not necessarily a whole chapter: the four works have different structures, so the parsers use different source units.
 
-| Tradition | Work / Gutenberg edition title | Translator | Built-in chunks | Source | Translation year |git add README.md
-git commit -m "Add project README"
-git push origin main
+| Tradition | Work / Gutenberg edition title | Translator | Built-in chunks | Source | Translation year |
 |---|---|---|---:|---|---|
 | Confucian | Analects / *The Chinese Classics — Volume 1: Confucian Analects* | James Legge | 299 | [Gutenberg #4094](https://www.gutenberg.org/ebooks/4094) | Not specified in the checked ebook metadata |
 | Daoist | Tao Te Ching / *The Tao Teh King, or the Tao and its Characteristics* | James Legge | 105 | [Gutenberg #216](https://www.gutenberg.org/ebooks/216) | Not specified in the checked ebook metadata |
