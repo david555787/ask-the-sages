@@ -339,3 +339,298 @@ What happened (my notes):
 - Codex noted that the already-open index kept its earlier runtime setting during the first test, so tune_ef.py benchmarks each persisted setting in a fresh Python process.
 - Codex updated load_db.py so that future collections are created with ef_search=200, added a --full-top3 option to explore_queries.py, and re-ran all 14 queries. The 42 full passages with distances, metadata and keyword overlaps are in tuned_queries.txt.
 - Codex verified that the 1,124 records, IDs, embeddings, documents and metadata were unchanged. Nothing was deleted, rebuilt, re-embedded or committed.
+
+Step 5e: Keyword baseline, more candidate queries, threshold stress test, stray symbols
+
+Tool: Codex (GPT-6.1 Sol, Medium, as shown in the app)
+
+Prompt (verbatim):
+
+Continue the same project. Do not modify the collection, chunks.jsonl or any
+existing file. Write step6_experiments.py and write its full output to
+data/processed/experiments2.txt (also print a short summary). Use only
+.venv/bin/python and the packages already installed (implement BM25 yourself
+with k1=1.5, b=0.75; do not install anything). If a command is blocked by
+sandbox permissions, stop and tell me exactly what was blocked. Do not commit
+anything.
+
+PART 1 - keyword baseline. Read data/processed/chunks.jsonl. Tokenize texts and
+queries as lowercase alphabetic words. For each of these queries: (a) print how
+many chunks contain ALL of the non-stopword query words (use the stopword list
+from explore_queries.py), (b) print the BM25 top 5 (rank, score, id, work,
+section, first 120 characters), and (c) print the rank (or "not in top 50")
+that BM25 gives to each of the top 3 results that the vector search returns for
+the same query (use the collection "sages" with n_results=3 for the vector
+side).
+Queries: "someone who is afraid of dying"; "how do I stay calm when people
+treat me unfairly"; "doing good without wanting credit".
+Also print how many chunks contain the exact word "dying" and how many contain
+"afraid", and list the ids.
+
+PART 2 - new candidate queries. For each query, run the vector search
+(n_results=3, include documents, metadatas, distances) and print the FULL text,
+distance, tradition, work, section, words and the keyword overlap (same
+definition as in explore_queries.py). Then print the BM25 rank of each of those
+3 results.
+ A. "I'm tired of people who talk a lot but do little"
+ B. "why can a gentle person defeat a forceful one"
+ C. "pretending to be an expert when I am not"
+ D. "I get anxious about things I cannot control"
+ E. "being humble gets you further than showing off"
+ F. "I was blamed for something I did not do"
+ G. "my elderly parents need me, how should I treat them"
+
+PART 3 - threshold stress test. For each of these queries print only the best
+distance, the 5th distance, and the first 100 characters of the top-1 text:
+ Off-topic: "what is the capital of France"; "how to bake sourdough bread";
+"latest iPhone battery life"; "who won the world cup"; "how do I fix a flat
+bicycle tire"; "python list comprehension"; "weather forecast for tomorrow";
+"how to train for a marathon"; "the plot of Star Wars"; "how to write a cover
+letter".
+ Adjacent modern life questions: "how do I choose a college major"; "should I
+quit my job to start a company"; "is social media making people lonely"; "how
+do I make friends in a new city"; "what is a good way to deal with a difficult
+boss".
+PART 4 - short chunks. Re-run these three queries twice, once as before and
+once with where={"words": {"$gte": 25}}, and print the top 3 of each with the
+first 200 characters of text and the distance: "is it better to lead by force
+or by example"; "a leader who does not need to boast"; "is it right to disobey
+an unjust order".
+
+PART 5 - stray symbols. Scan the "text" of every chunk for characters that are
+not letters, digits, whitespace or this set: . , ; : ! ? ' " ( ) [ ] - and the
+em dash. Print each distinct stray character with its count and up to 3 example
+ids with 60 characters of context. Also print how many chunks contain a
+parenthetical made only of Roman numerals, digits, periods, semicolons and
+spaces, for example "(vii. 29; ix. 38)", with 5 examples. Report only; change
+nothing.
+
+What happened (my notes):
+
+Codex wrote step6_experiments.py and saved the full output to data/processed/experiments2.txt. It implemented BM25 itself (k1=1.5, b=0.75; tokens are lowercase [a-z]+; BM25 keeps stopwords, while the "all words" check and the keyword overlap drop them). It changed nothing: the 1,124 ids, embeddings, documents, metadata, the collection configuration and the bytes of chunks.jsonl were verified unchanged.
+Keyword baseline for "someone who is afraid of dying": no chunk contains all three non-stopword query words (afraid, dying, someone). The BM25 ranks of the three vector hits were 31 (Tao Te Ching 74), and not in the top 50 for Meditations 9.3 and 8.58. The BM25 top 1 was Tao Te Ching 75, a chapter about taxes and famine.
+Candidate query B, "why can a gentle person defeat a forceful one": the three vector hits (Tao Te Ching 67 at 0.942, Meditations 11.9 at 0.958, Tao Te Ching 69 at 1.011) share no exact word with the query, and BM25 ranks them 59, 588 and 692. BM25 here is exact-word matching, with no stemming.
+Part 4: adding where={"words": {"$gte": 25}} did not improve the three test queries, so I kept the short chunks.
+Part 5 found 50 stray "+" characters and 37 chunks with translator cross-references such as "(vii. 29; ix. 38)"; all the examples it printed were in the Meditations. The curly quotes in the Apology are normal typography.
+[MY OWN NOTES: what I decided after reading the output, e.g. why I picked B and "afraid of dying" for the README and rejected the others.]
+
+
+### Step 6: Remove translator markup from the Meditations
+
+Tool: Codex (GPT-6.1 Sol, Medium, as shown in the app)
+
+Prompt (verbatim):
+
+Continue the same project. Read chunking.py, parsers.py, build_chunks.py and
+load_db.py first. Fix two kinds of translator markup, in the Meditations only
+(do not change the Apology, Analects or Tao Te Ching text in any way):
+
+1. Stray "+" characters (about 50, for example "without consideration:+ he had"
+and "I learned from him also + consistency"): remove each "+", then normalize
+doubled spaces and any space left before punctuation.
+2. Cross-reference parentheticals that contain only Roman-numeral letters, the
+letter c, digits, periods, commas, semicolons and spaces, for example "(vii.
+29; ix. 38)", "(i. c. 19)" and "(ii. 11, 12, 13; vii. 62; 18 viii. 17)": remove
+them together with the space before them, and keep the sentence's final
+punctuation. Do not remove any parenthetical that contains real words.
+
+Then print: how many chunks changed per work (only the Meditations should
+change), 10 before/after examples, any remaining parenthetical that still
+contains a digit (list them, do not remove them), and any chunk that is now
+shorter than 15 words or empty.
+
+Rebuild data/processed/chunks.jsonl. Section labels must not change. Because
+word counts change, the split points of long units may change: if the ids, the
+number of parts or the part boundaries of any chunk change, list them, and make
+sure ids stay unique and deterministic. Then reload with load_db.py (upsert).
+If the number of chunks changes, delete the stale ids so the collection
+contains exactly the ids in chunks.jsonl. Verify that the collection count
+equals the number of lines in chunks.jsonl, that every stored document and
+metadata record equals its line in chunks.jsonl, that ef_search is still 200,
+that the "smoke" collection is untouched, and that a second rebuild gives
+identical bytes. Use .venv/bin/python. If a command is blocked by sandbox
+permissions, stop and tell me exactly what was blocked. Do not commit anything.
+
+What happened (my notes):
+
+After the rebuild and reload, grep -c '+' data/processed/chunks.jsonl prints 0 and wc -l still gives 1124.
+[PASTE FROM CODEX'S REPORT: chunks changed per work, the 10 before/after examples if useful, any remaining parenthetical that still contains a digit, any chunk now shorter than 15 words, and whether ids/part boundaries changed.]
+Why I did this: the "+" marks and cross-references are the translator's notes, not Marcus's text, and they were being embedded. The top hit for "is it right to disobey an unjust order" was an 18-word chunk carrying "(vii. 29; ix. 38)".
+
+### Step 7: sages.py with the four-tradition comparison and distance bands
+
+Tool: Codex (GPT-6.1 Sol, Medium, as shown in the app)
+
+Prompt (verbatim):
+
+Continue the same project. Write sages.py, a library module that the command-
+line app will use later, and demo_ask.py that exercises it. Use only the
+current Chroma API, no external API and no new packages. Do not change the
+stored collection (read-only access to "sages" in ./chroma_store, which uses
+ef_search=200).
+
+sages.py:
+- Constants at the top, each with a comment saying they are empirical values
+from my experiments on about 35 queries and not guarantees: STRONG_MAX = 1.10,
+MODERATE_MAX = 1.30, WEAK_MAX = 1.40, N_TRADITIONS = ["confucian", "daoist",
+"stoic", "greek"] with display names (Confucian, Daoist, Stoic, Greek).
+- open_collection() returns the persistent collection "sages".
+- band(distance) returns "strong", "moderate", "weak" or "none" using the
+constants (distance below STRONG_MAX is strong, below MODERATE_MAX moderate,
+below WEAK_MAX weak, otherwise none).
+- ask(query, collection) does: (a) one unfiltered query with n_results=1 to get
+the overall best distance; if its band is "none", return a result with
+refused=True and the best distance; (b) otherwise, for each tradition run
+collection.query with where={"tradition": t} and n_results=1, and return a list
+of dicts (tradition, id, work, section, translator, distance, band, text)
+sorted by distance. A tradition whose own best band is "none" is returned with
+band "none" and no passage.
+- format_answer(result, width=88) returns a printable string: the query, a one-
+line note of how many traditions had a passage, then one block per tradition
+(tradition name, work and section, translator, band label and distance rounded
+to 3 decimals, and the passage text wrapped to the width). Blocks with band
+"weak" carry the note "weak match: read with caution"; blocks with band "none"
+say that this tradition has no close passage. If refused, print that none of
+the four traditions contains a passage close to this question and show the best
+distance. At the end always print a short reminder that these are the closest
+passages in the translations I loaded, not answers, and that a small distance
+does not guarantee relevance. Keep the function pure (return a string, do not
+print).
+
+demo_ask.py: print format_answer(ask(...)) for these queries: "why can a gentle
+person defeat a forceful one", "someone who is afraid of dying", "how do I stay
+calm when people treat me unfairly", "what makes a person truly wise", "the
+plot of Star Wars", "how to bake sourdough bread".
+
+Use .venv/bin/python. If a command is blocked by sandbox permissions, stop and
+tell me exactly what was blocked. Do not commit anything.
+
+What happened (my notes):
+
+Codex wrote sages.py (open_collection, band, ask, format_answer) and demo_ask.py. The distance bands (strong < 1.10, moderate < 1.30, weak < 1.40, otherwise refused) are empirical values from my experiments, not guarantees.
+Output of demo_ask.py: "why can a gentle person defeat a forceful one" gave 4 of 4 traditions (Daoist 0.942, Stoic 0.958, Confucian 1.100, Greek 1.276). "someone who is afraid of dying" gave 4 of 4 (0.875, 1.028, 1.178, 1.198). "how do I stay calm when people treat me unfairly" gave 2 of 4 (Greek 1.210 moderate, Stoic 1.306 weak; Confucian and Daoist had no close passage). "what makes a person truly wise" gave 4 of 4 (0.726 to 0.915).
+"the plot of Star Wars" was not refused: two weak matches (Meditations 11.6 at 1.343, Tao Te Ching 69 at 1.351). "how to bake sourdough bread" was refused (best distance 1.556).
+I committed this as bc3a0a2; that commit also contains the files from the next two steps.
+[MY OWN NOTES: what I saw when I read the four-tradition output myself, e.g. which labels matched my sense of relevance and which did not.]
+
+### Step 8: Add passages at runtime
+
+Tool: Codex (GPT-6.1 Sol, Medium, as shown in the app)
+
+Prompt (verbatim):
+
+Continue the same project. Read sages.py, load_db.py, chunking.py and
+build_chunks.py first. Add runtime adding of new passages. Do not touch the
+original 1,124 records and do not write user text into
+data/processed/chunks.jsonl.
+
+1. In sages.py add add_passage(text, tradition, title, collection,
+source_note="") that:
+ - validates: strips the text; rejects empty text or text shorter than 5 words
+with a ValueError that has a clear message; tradition is a non-empty string,
+lowercased and stripped (it may be one of confucian, daoist, stoic, greek or a
+new label such as "buddhist"); title non-empty.
+ - splits the text into chunks of at most 150 words using the existing
+split_long_text rule from chunking.py (same behaviour as the built-in data,
+including the "part i/n" labels).
+ - gives every chunk a deterministic id "user-" + first 12 hex characters of
+the sha256 of (tradition + title + chunk text), so adding exactly the same text
+twice does not create duplicates.
+ - upserts the chunks with document = chunk text and metadata: tradition, work
+= title, section = "user-added" plus ", part i/n" when split, translator =
+source_note or "user-added", words = word count, and source = "user".
+ - before inserting, checks near-duplicates: for each chunk, query the nearest
+existing chunk and report its id, work, section and distance. Return a result
+dict with: ids added, how many were new vs already present (same id), and the
+list of near-duplicate warnings for chunks whose nearest neighbour is closer
+than DUPLICATE_MAX = 0.35 (a constant at the top with a comment). First measure
+and print the squared-L2 distance between a built-in chunk and the same text
+with two words changed, and between a built-in chunk and an unrelated built-in
+chunk, so I can judge the constant.
+ - the passages are searchable immediately: add a self-check in demo_add.py
+that adds a made-up passage in a new tradition "test-tradition" about a clearly
+distinctive topic, runs ask() with a paraphrase of it and shows that it comes
+back, then removes the passage again.
+2. Make ask() discover the traditions present in the collection instead of
+using a fixed list: read the distinct values of the "tradition" metadata on
+every call (no global cache, so newly added traditions appear immediately),
+keep the order confucian, daoist, stoic, greek first and put new traditions
+after them in alphabetical order. Display names: keep the existing names for
+the four built-in ones and use title case for others.
+3. Add list_user_passages(collection) (ids, tradition, work, section, words,
+first 80 characters) and delete_user_passages(collection, ids=None) that only
+ever deletes records whose metadata source == "user" (never built-in ones) and
+returns how many were deleted.
+4. IMPORTANT: load_db.py currently deletes stale ids so that the collection
+matches chunks.jsonl exactly. Change it so that it never deletes records whose
+id starts with "user-" (or whose metadata source is "user"), and so that the
+final assertion compares only the built-in records with chunks.jsonl. Run
+load_db.py once to prove that a user-added test passage survives a reload, then
+delete the test passage.
+5. Make sure the 1,124 built-in records are unchanged at the end and ef_search
+is still 200.
+
+Use .venv/bin/python. If a command is blocked by sandbox permissions, stop and
+tell me exactly what was blocked. Do not commit anything.
+
+What happened (my notes):
+
+This step created demo_add.py (it shows up in commit bc3a0a2) and changed sages.py and load_db.py as the prompt asked.
+[PASTE FROM CODEX'S REPORT: what it changed, the two measured distances I asked for (built-in chunk vs. the same chunk with two words changed; built-in chunk vs. an unrelated chunk), the DUPLICATE_MAX value it ended up with, the result of the "test-tradition" self-check, and the proof that a user-added passage survived a load_db.py reload.]
+Later, main.py started with "Stored passages: 1124; user-added: 0".
+
+### Step 9: Command-line menu (main.py)
+
+Tool: Codex (GPT-6.1 Sol, Medium, as shown in the app)
+
+Prompt (verbatim):
+
+Continue the same project. Read sages.py first. Write main.py, the command-line
+app, with a menu loop:
+
+- My Sages -
+1. Ask a question
+2. Add a passage
+3. Show what is stored
+4. Delete my added passages
+5. Quit
+
+Behaviour:
+- At start print the number of stored passages and how many are user-added. If
+the collection does not exist or is empty, print the exact commands to build it
+(the curl download, build_chunks.py, load_db.py) and exit cleanly instead of
+crashing.
+- 1: read a question (re-prompt on empty input), call ask(), print
+format_answer(). Never crash on odd input (input longer than 500 characters is
+truncated with a notice).
+- 2: ask for the tradition (show the traditions that exist and allow a new
+label), a title, an optional source note, then let the user paste the text:
+read lines until the user enters a line containing only "END". Call
+add_passage(), print how many chunks were added and any near-duplicate warnings
+(ask "add anyway? y/n" before inserting if there are warnings; add a dry_run
+parameter to add_passage if needed), and tell the user that the passage is
+searchable now.
+- 3: print the counts per tradition and per work, and the list of user-added
+passages.
+- 4: list user-added passages and ask for confirmation (type YES) before
+deleting them with delete_user_passages. It must never touch built-in records.
+- 5 (or Ctrl-D / Ctrl-C at the menu): quit cleanly with a short message.
+- Invalid menu choices print a short hint and show the menu again.
+Keep the code simple and readable, with a docstring per function, because I
+have to explain it. No colour libraries, no new packages.
+
+Then test it by feeding scripted input through stdin (printf ... |
+.venv/bin/python main.py): ask a question, add a short passage in a new
+tradition, ask a question that should retrieve it, show stored, delete it,
+quit. Show me the full transcript. Then run it a second time with only the
+"show what is stored" and "quit" choices to show that the built-in data is
+still intact. Use .venv/bin/python. If a command is blocked by sandbox
+permissions, stop and tell me exactly what was blocked. Do not commit anything.
+
+What happened (my notes):
+
+Codex created main.py and, because my prompt allowed it, added a dry_run option to add_passage() so the near-duplicate warning can be shown before anything is written.
+Scripted test through stdin: ask, add, retrieve, show, delete, quit. The temporary passage was retrieved at distance 0.491 and then deleted. A second run (show stored, quit) confirmed that 1,124 original records were unchanged, no user passages remained, chunks.jsonl was unchanged and ef_search was still 200.
+Codex also checked duplicate cancellation, empty questions, truncation at 500 characters, missing or empty startup data, invalid menu choices, EOF/Ctrl-C, and the exact YES confirmation for deleting.
+I then ran .venv/bin/python main.py by hand: it printed "Stored passages: 1124; user-added: 0", and a question outside the main topics came back with only weak matches, each marked "weak match: read with caution".
+[MY OWN NOTES: my manual test of add, quit, reopen and "show what is stored", to confirm persistence.]
