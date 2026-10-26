@@ -1,4 +1,4 @@
-"""Parse only the primary texts of Apology and Meditations, entirely offline."""
+"""Parse four local primary texts entirely offline."""
 
 import re
 
@@ -119,3 +119,158 @@ def parse_meditations() -> list[dict]:
         for part in split_long_text(text):
             chunks.append(record(part, "Meditations", f"Book {book}, item {item}"))
     return chunks
+
+
+def contains_cjk(text: str) -> bool:
+    """Detect CJK scripts, radicals, compatibility forms, and wide punctuation."""
+    ranges = (
+        (0x1100, 0x11FF), (0x2E80, 0xA4CF), (0xA960, 0xA97F),
+        (0xAC00, 0xD7FF), (0xF900, 0xFAFF), (0xFE10, 0xFE1F),
+        (0xFE30, 0xFE4F), (0xFF00, 0xFFEF), (0x1B000, 0x1B2FF),
+        (0x20000, 0x323AF),
+    )
+    return any(low <= ord(char) <= high for char in text for low, high in ranges)
+
+
+def _roman_number(roman: str) -> int:
+    values = {"I": 1, "V": 5, "X": 10, "L": 50}
+    total = 0
+    for i, char in enumerate(roman):
+        value = values[char]
+        total += -value if i + 1 < len(roman) and value < values[roman[i + 1]] else value
+    return total
+
+
+def _legge_record(text: str, work: str, section: str) -> dict:
+    return {
+        "text": text,
+        "tradition": "confucian" if work == "Analects" else "daoist",
+        "work": work,
+        "section": section,
+        "translator": "James Legge",
+    }
+
+
+def _legge_parts(text: str, work: str, section: str) -> list[dict]:
+    parts = split_long_text(text)
+    return [
+        _legge_record(part, work, section + (f", part {i}/{len(parts)}" if len(parts) > 1 else ""))
+        for i, part in enumerate(parts, 1)
+    ]
+
+
+def analects_chapters() -> list[list[str]]:
+    """Filter whole Chinese lines before detecting English chapter boundaries.
+
+    Source Roman chapter labels contain typos; chapter positions define the
+    section numbers. Every discrepancy is printed for inspection.
+    """
+    text = load_text("pg4094.txt")
+    english = "\n".join(line for line in text.splitlines() if not contains_cjk(line))
+    # This edition has one standalone editorial locator before Book XVII, I.
+    english = re.sub(r"(?m)^\[17\.1\][ \t]*$", "", english)
+    headings = list(re.finditer(r"(?m)^BOOK ([IVX]+)\.[^\n]*$", english))
+    assert [_roman_number(h.group(1)) for h in headings] == list(range(1, 21)), "Expected 20 Analects books"
+    books = []
+    for book, heading in enumerate(headings, 1):
+        end = headings[book].start() if book < len(headings) else len(english)
+        body = english[heading.end() : end]
+        markers = list(re.finditer(r"(?m)^[ \t]*CHAP(?:TER)?\.?[ \t]+([IVXL]+)\.?[ \t]+", body))
+        assert markers, f"No chapters in Analects Book {book}"
+        assert not body[: markers[0].start()].strip(), f"Unexpected Analects Book {book} preface"
+        chapters = []
+        for chapter, marker in enumerate(markers, 1):
+            if _roman_number(marker.group(1)) != chapter:
+                print(f"Analects heading mismatch: Book {book}, chapter {chapter} is printed {marker.group(1)}")
+            stop = markers[chapter].start() if chapter < len(markers) else len(body)
+            chapters.append(" ".join(body[marker.end() : stop].split()))
+        books.append(chapters)
+    return books
+
+
+def parse_analects() -> list[dict]:
+    """Merge whole chapters within a book up to 120 words; split long chapters."""
+    chunks = []
+    for book, chapters in enumerate(analects_chapters(), 1):
+        pending = ""
+        first = last = 0
+
+        def flush() -> None:
+            if pending:
+                label = f"chapter {first}" if first == last else f"chapters {first}-{last}"
+                chunks.extend(_legge_parts(pending, "Analects", f"Book {book}, {label}"))
+
+        for chapter, text in enumerate(chapters, 1):
+            candidate = f"{pending} {text}".strip()
+            if pending and word_count(candidate) <= 120:
+                pending = candidate
+                last = chapter
+                continue
+            flush()
+            pending = text
+            first = last = chapter
+        flush()
+    assert all(not contains_cjk(chunk["text"]) for chunk in chunks)
+    return chunks
+
+
+def tao_chapters() -> list[str]:
+    """Find explicit N. 1. starts, then infer missing chapters within anchors."""
+    lines = load_text("pg216.txt").splitlines()
+    explicit = []
+    for i, line in enumerate(lines):
+        match = re.match(r"^(?:Ch\.[ \t]+)?(\d+)\.[ \t]+1\.(?:[ \t]|$)", line)
+        if match:
+            explicit.append((int(match.group(1)), i))
+    numbers = [n for n, _ in explicit]
+    assert numbers == sorted(set(numbers)), "Repeated or unordered Tao chapter anchors"
+    assert numbers[0] == 1 and numbers[-1] == 81
+    known = dict(explicit)
+    starts = dict(known)
+    for chapter in range(1, 82):
+        if chapter in known:
+            continue
+        left = max(n for n in known if n < chapter)
+        right = min(n for n in known if n > chapter)
+        candidates = [
+            i for i in range(known[left] + 1, known[right])
+            if re.match(rf"^{chapter}\.(?:[ \t]|$)", lines[i])
+        ]
+        assert len(candidates) == 1, f"Ambiguous Tao chapter {chapter}: {candidates}"
+        starts[chapter] = candidates[0]
+        print(f"Inferred Tao chapter {chapter}: stripped-text line {candidates[0] + 1}: {lines[candidates[0]]}")
+    ordered = sorted(starts, key=starts.get)
+    assert ordered == list(range(1, 82)), "Expected Tao chapters 1–81 once, in order"
+    print("Tao excluded before chapter 1:")
+    print("\n".join(lines[: starts[1]]).strip())
+    # In this edition the final chapter ends with this verified final sentence.
+    # Bound it explicitly so trailing material cannot join chapter 81 silently.
+    final_line = "all the doing in the way of the sage he does not strive."
+    endings = [i for i in range(starts[81], len(lines)) if lines[i].strip() == final_line]
+    assert len(endings) == 1, "Tao final sentence changed; inspect the end boundary"
+    end = endings[0] + 1
+    tail = "\n".join(lines[end:])
+    print("Tao excluded after chapter 81:", tail.strip() or "(blank lines only; Gutenberg footer already stripped)")
+    chapters = []
+    for chapter in range(1, 82):
+        stop = starts[chapter + 1] if chapter < 81 else end
+        chapter_lines = lines[starts[chapter] : stop]
+        chapter_lines[0] = re.sub(r"^(?:Ch\.[ \t]+)?\d+\.[ \t]*", "", chapter_lines[0])
+        kept = []
+        for line in chapter_lines:
+            if re.fullmatch(r"PART (?:[IVX]+|\d+)\.", line.strip()):
+                print(f"Tao excluded structural heading: {line.strip()}")
+                continue
+            # Drop sub-paragraph numbering, including standalone verse labels.
+            line = re.sub(r"^\d+\.[ \t]*", "", line)
+            kept.append(line)
+        chapters.append(" ".join(" ".join(kept).split()))
+    return chapters
+
+
+def parse_tao_te_ching() -> list[dict]:
+    """Keep every prose and verse line, with each chapter an independent unit."""
+    return [
+        chunk for chapter, text in enumerate(tao_chapters(), 1)
+        for chunk in _legge_parts(text, "Tao Te Ching", f"Chapter {chapter}")
+    ]
