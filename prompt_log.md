@@ -299,3 +299,43 @@ What happened (my notes):
   - disobeying unjust orders: 0.980 / 1.122
   - good without credit: 1.196 / 1.378
 - Codex verified that all 1,124 stored records were unchanged.
+
+### Step 5d: Tune the approximate search and re-run the queries
+
+Tool: Codex (GPT-6.1 Sol, Medium, as shown in the app)
+
+Prompt (verbatim):
+
+```
+Continue the same project. Goal: fix the approximate-search recall problem and then re-run the queries.
+
+1. Do not delete or rebuild the collection. First write tune_ef.py. For each ef_search value in [100, 200, 500, 1200], set it with collection.modify(configuration={"hnsw": {"ef_search": value}}) (verify the exact API from the installed Chroma 1.5.9 source, as you did before). Then, for these 14 queries, compute (a) how many of the exact brute-force top 5 appear in Chroma's top 5 (unfiltered), and (b) for each of the 4 traditions (confucian, daoist, stoic, greek), whether Chroma's filtered top-1 (where={"tradition": ...}) equals the brute-force top-1 restricted to that tradition. Print one table per ef_search value, plus the average query time.
+The 14 queries:
+ 1. "how do I stay calm when people treat me unfairly"
+ 2. "is it better to lead by force or by example"
+ 3. "someone who is afraid of dying"
+ 4. "what makes a person truly wise"
+ 5. "how should a ruler treat his people"
+ 6. "how to install Python on a Mac"
+ 7. "best pizza topping"
+ 8. "quantum chromodynamics"
+ 9. "I keep comparing myself to people who are more successful than me"
+ 10. "should I speak up even if it makes me unpopular"
+ 11. "how can I be content with a simple life"
+ 12. "a leader who does not need to boast"
+ 13. "is it right to disobey an unjust order"
+ 14. "doing good without wanting credit"
+2. Leave the collection configured with the SMALLEST ef_search value that gives 5/5 on all 14 queries and the correct filtered top-1 for all 56 query-tradition pairs. If none of the four values achieves that, tell me instead of picking one.
+3. Update load_db.py so that a rebuilt collection gets the same ef_search setting automatically (verify from the source how to pass it at creation or via modify after creation). Do not re-embed or change documents, ids or metadata. Verify that the count is still 1124 and that all documents and metadata are unchanged.
+4. Re-run explore_queries.py for all 14 queries with this setting, but print the FULL text of the top 3 results per query (not 150 characters), together with distance, tradition, work, section and the keyword overlap.
+
+Use .venv/bin/python. If a command is blocked by sandbox permissions, stop and tell me exactly what was blocked. Do not commit anything.
+```
+
+What happened (my notes):
+
+- Codex created tune_ef.py and benchmarked ef_search values 100, 200, 500 and 1200 on the 14 queries. Queries whose unfiltered top 5 exactly matched the brute-force top 5: 12/14 at ef_search 100, and 14/14 at 200, 500 and 1200. The filtered top-1 was correct for all 56 query-tradition pairs at every value, including 100. Average query time was 68.093 ms (100), 66.143 ms (200), 65.629 ms (500) and 65.406 ms (1200). These timings include embedding the query and searching after model warm-up, and are single-run measurements.
+- Codex configured the "sages" collection with ef_search=200, the smallest tested value that passed every check.
+- Codex noted that the already-open index kept its earlier runtime setting during the first test, so tune_ef.py benchmarks each persisted setting in a fresh Python process.
+- Codex updated load_db.py so that future collections are created with ef_search=200, added a --full-top3 option to explore_queries.py, and re-ran all 14 queries. The 42 full passages with distances, metadata and keyword overlaps are in tuned_queries.txt.
+- Codex verified that the 1,124 records, IDs, embeddings, documents and metadata were unchanged. Nothing was deleted, rebuilt, re-embedded or committed.

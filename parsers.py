@@ -113,10 +113,39 @@ def meditations_items() -> list[tuple[int, int, str]]:
     return units
 
 
+def clean_meditations_markup(text: str) -> str:
+    """Remove Long's plus markers and numeral-only cross-references.
+
+    Canonical Roman-numeral validation protects real words such as 'civil'
+    despite their containing only Roman-numeral letters. References containing
+    words (including 'note' or 'Epictetus') are left intact.
+    """
+    roman = re.compile(r"M{0,3}(?:CM|CD|D?C{0,3})(?:XC|XL|L?X{0,3})(?:IX|IV|V?I{0,3})", re.I)
+
+    def remove_reference(match: re.Match) -> str:
+        body = match.group("body")
+        tokens = re.findall(r"[A-Za-z]+|[0-9]+", body)
+        if not tokens or not all(token.isdigit() or roman.fullmatch(token) for token in tokens):
+            return match.group()
+        # A final full stop sometimes sits inside the reference rather than
+        # after it (', (vii. 29.)'). Preserve it; avoid duplicating external .?!.
+        following = text[match.end() :].lstrip()
+        if body.rstrip().endswith(".") and (not following or following[0] not in ".?!,;:"):
+            return "."
+        return ""
+
+    text = text.replace("+", "")
+    text = re.sub(r"[ \t]*\((?P<body>[ivxlcdm0-9.,; ]+)\)", remove_reference, text, flags=re.I)
+    text = re.sub(r"[ \t]+([.,;:!?])", r"\1", text)
+    # Removing a sentence-final citation after a comma can expose ',.'.
+    text = re.sub(r"[,;:]\.", ".", text)
+    return " ".join(text.split())
+
+
 def parse_meditations() -> list[dict]:
     chunks = []
     for book, item, text in meditations_items():
-        for part in split_long_text(text):
+        for part in split_long_text(clean_meditations_markup(text)):
             chunks.append(record(part, "Meditations", f"Book {book}, item {item}"))
     return chunks
 
