@@ -1,0 +1,31 @@
+Stored passages: 1124; user-added: 0
+
+- My Sages -
+1. Ask a question
+2. Add a passage
+3. Show what is stored
+4. Delete my added passages
+5. Quit
+Choice: 3
+Stored passages: 1124; user-added: 0
+By tradition:
+  Confucian: 299
+  Daoist: 105
+  Stoic: 615
+  Greek: 105
+By work:
+  Analects: 299
+  Apology: 105
+  Meditations: 615
+  Tao Te Ching: 105
+User-added passages:
+No user-added passages.
+
+- My Sages -
+1. Ask a question
+2. Add a passage
+3. Show what is stored
+4. Delete my added passages
+5. Quit
+Choice: 5
+Goodbye.

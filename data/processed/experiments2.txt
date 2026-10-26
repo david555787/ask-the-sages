@@ -1,0 +1,238 @@
+Chroma version: 1.5.9
+Collection: sages; records: 1124; HNSW: {'space': 'l2', 'ef_construction': 100, 'ef_search': 200, 'max_neighbors': 16, 'resize_factor': 1.2, 'sync_threshold': 1000}
+Tokenization: lowercase [a-z]+; BM25 k1=1.5, b=0.75; IDF=ln(1+(N-df+0.5)/(df+0.5)).
+BM25 retains stopwords; ALL-keyword matching and overlaps remove explore_queries.STOPWORDS.
+BM25 ties: lexical ID order; ranking includes zero-score documents if necessary.
+
+PART 1 - keyword baseline
+
+Query: someone who is afraid of dying
+Non-stopword query words: ['afraid', 'dying', 'someone']
+Chunks containing ALL words: 0
+BM25 top 5: rank | score | id | work | section | first 120 characters
+1 | 7.342448 | tao-te-ching-0098 | Tao Te Ching | Chapter 75 | The people suffer from famine because of the multitude of taxes consumed by their superiors. It is through this that the
+2 | 7.264109 | meditations-0499 | Meditations | Book 10, item 25 | He who flies from his master is a runaway; but the law is master, and he who breaks the law is a runaway. And he also wh
+3 | 7.102363 | meditations-0414 | Meditations | Book 9, item 1, part 3/4 | For of necessity such a man must often find fault with the universal nature, alleging that it assigns things to the bad 
+4 | 6.982542 | apology-0049 | Apology | paragraph 55, part 1/3 | Some one will say: And are you not ashamed, Socrates, of a course of life which is likely to bring you to an untimely en
+5 | 6.806116 | analects-0079 | Analects | Book 7, chapter 10 | 1. The Master said to Yen Yuan, 'When called to office, to undertake its duties; when not so called, to lie retired;-- i
+Vector top 3: rank | id | distance | work | section | BM25 rank
+1 | tao-te-ching-0097 | 0.875 | Tao Te Ching | Chapter 74 | 31
+2 | meditations-0417 | 1.028 | Meditations | Book 9, item 3, part 1/3 | not in top 50
+3 | meditations-0408 | 1.090 | Meditations | Book 8, item 58 | not in top 50
+
+Query: how do I stay calm when people treat me unfairly
+Non-stopword query words: ['calm', 'people', 'stay', 'treat', 'unfairly']
+Chunks containing ALL words: 0
+BM25 top 5: rank | score | id | work | section | first 120 characters
+1 | 13.605418 | analects-0267 | Analects | Book 18, chapters 3-4 | The duke Ching of Ch'i, with reference to the manner in which he should treat Confucius, said, 'I cannot treat him as I 
+2 | 11.838990 | meditations-0516 | Meditations | Book 10, item 36, part 2/3 | But in our own case how many other things are there for which there are many who wish to get rid of us? Thou wilt consid
+3 | 11.790593 | analects-0136 | Analects | Book 11, chapters 9-10 | 1. When Yen Yuan died, the Master bewailed him exceedingly, and the disciples who were with him said, 'Master, your grie
+4 | 10.564105 | apology-0097 | Apology | paragraph 71, part 1/3 | Friends, who would have acquitted me, I would like also to talk with you about the thing which has come to pass, while t
+5 | 10.377117 | analects-0086 | Analects | Book 7, chapters 27-28 | The Master said, 'There may be those who act without knowing why. I do not do so. Hearing much and selecting what is goo
+Vector top 3: rank | id | distance | work | section | BM25 rank
+1 | apology-0075 | 1.210 | Apology | paragraph 63, part 1/4 | 7
+2 | meditations-0531 | 1.306 | Meditations | Book 11, item 9 | not in top 50
+3 | apology-0072 | 1.309 | Apology | paragraph 62, part 2/4 | not in top 50
+
+Query: doing good without wanting credit
+Non-stopword query words: ['credit', 'doing', 'good', 'wanting', 'without']
+Chunks containing ALL words: 0
+BM25 top 5: rank | score | id | work | section | first 120 characters
+1 | 7.669684 | analects-0263 | Analects | Book 17, chapters 22-23 | The Master said, 'Hard is it to deal with him, who will stuff himself with food the whole day, without applying his mind
+2 | 7.586915 | meditations-0027 | Meditations | Book 1, item 17, part 2/5 | that I was subjected to a ruler and father who was able to take away all pride from me, and to bring me to the knowledge
+3 | 7.187084 | tao-te-ching-0063 | Tao Te Ching | Chapter 47 | Without going outside his door, one understands (all that takes place) under the sky; without looking out from his windo
+4 | 6.775564 | apology-0049 | Apology | paragraph 55, part 1/3 | Some one will say: And are you not ashamed, Socrates, of a course of life which is likely to bring you to an untimely en
+5 | 6.617017 | meditations-0346 | Meditations | Book 8, item 1, part 2/2 | Observe then what it wills, and let nothing else distract thee; for thou hast had experience of many wanderings without 
+Vector top 3: rank | id | distance | work | section | BM25 rank
+1 | meditations-0524 | 1.196 | Meditations | Book 11, item 4 | 6
+2 | meditations-0379 | 1.287 | Meditations | Book 8, item 33 | not in top 50
+3 | meditations-0342 | 1.346 | Meditations | Book 7, item 73 | not in top 50
+
+Exact word 'dying': 9 chunks; IDs: ['apology-0049', 'meditations-0033', 'meditations-0122', 'meditations-0198', 'meditations-0496', 'meditations-0515', 'meditations-0516', 'analects-0079', 'tao-te-ching-0098']
+
+Exact word 'afraid': 17 chunks; IDs: ['apology-0005', 'apology-0052', 'apology-0077', 'apology-0086', 'meditations-0043', 'meditations-0046', 'meditations-0283', 'meditations-0414', 'meditations-0436', 'meditations-0439', 'meditations-0461', 'meditations-0499', 'meditations-0574', 'analects-0054', 'analects-0232', 'tao-te-ching-0019', 'tao-te-ching-0070']
+
+PART 2 - new candidate queries
+
+A. I'm tired of people who talk a lot but do little
+Rank 1 | id meditations-0490 | distance 1.386 | stoic | Meditations | Book 10, item 16 | words 20
+No longer talk at all about the kind of man that a good man ought to be, but be such.
+Keyword overlap: ['but', 'talk']
+BM25 rank: 9
+Rank 2 | id analects-0199 | distance 1.420 | confucian | Analects | Book 14, chapter 21 | words 17
+The Master said, 'He who speaks without modesty will find it difficult to make his words good.'
+Keyword overlap: []
+BM25 rank: 790
+Rank 3 | id meditations-0343 | distance 1.426 | stoic | Meditations | Book 7, item 74 | words 33
+No man is tired of receiving what is useful. But it is useful to act according to nature. Do not then be tired of receiving what is useful by doing it to others.
+Keyword overlap: ['but', 'tired']
+BM25 rank: 2
+
+B. why can a gentle person defeat a forceful one
+Rank 1 | id tao-te-ching-0090 | distance 0.942 | daoist | Tao Te Ching | Chapter 67, part 2/2 | words 88
+With that gentleness I can be bold; with that economy I can be liberal; shrinking from taking precedence of others, I can become a vessel of the highest honour. Now-a-days they give up gentleness and are all for being bold; economy, and are all for being liberal; the hindmost place, and seek only to be foremost;--(of all which the end is) death. Gentleness is sure to be victorious even in battle, and firmly to maintain its ground. Heaven will save its possessor, by his (very) gentleness protecting him.
+Keyword overlap: []
+BM25 rank: 59
+Rank 2 | id meditations-0531 | distance 0.958 | stoic | Meditations | Book 11, item 9 | words 136
+As those who try to stand in thy way when thou art proceeding according to right reason will not be able to turn thee aside from thy proper action, so neither let them drive thee from thy benevolent feelings toward them, but be on thy guard equally in both matters, not only in the matter of steady judgment and action, but also in the matter of gentleness to those who try to hinder or otherwise trouble thee. For this also is a weakness, to be vexed at them, as well as to be diverted from thy course of action and to give way through fear; for both are equally deserters from their post,--the man who does it through fear, and the man who is alienated from him who is by nature a kinsman and a friend.
+Keyword overlap: []
+BM25 rank: 588
+Rank 3 | id tao-te-ching-0092 | distance 1.011 | daoist | Tao Te Ching | Chapter 69 | words 126
+A master of the art of war has said, 'I do not dare to be the host (to commence the war); I prefer to be the guest (to act on the defensive). I do not dare to advance an inch; I prefer to retire a foot.' This is called marshalling the ranks where there are no ranks; baring the arms (to fight) where there are no arms to bare; grasping the weapon where there is no weapon to grasp; advancing against the enemy where there is no enemy. There is no calamity greater than lightly engaging in war. To do that is near losing (the gentleness) which is so precious. Thus it is that when opposing weapons are (actually) crossed, he who deplores (the situation) conquers.
+Keyword overlap: []
+BM25 rank: 692
+
+C. pretending to be an expert when I am not
+Rank 1 | id tao-te-ching-0037 | distance 1.164 | daoist | Tao Te Ching | Chapter 27, part 2/2 | words 82
+This is called 'Hiding the light of his procedure.' Therefore the man of skill is a master (to be looked up to) by him who has not the skill; and he who has not the skill is the helper of (the reputation of) him who has the skill. If the one did not honour his master, and the other did not rejoice in his helper, an (observer), though intelligent, might greatly err about them. This is called 'The utmost degree of mystery.'
+Keyword overlap: ['not']
+BM25 rank: 262
+Rank 2 | id apology-0027 | distance 1.183 | greek | Apology | paragraph 11, part 1/3 | words 102
+There is another thing:—young men of the richer classes, who have not much to do, come about me of their own accord; they like to hear the pretenders examined, and they often imitate me, and proceed to examine others; there are plenty of persons, as they quickly discover, who think that they know something, but really know little or nothing; and then those who are examined by them instead of being angry with themselves are angry with me: This confounded Socrates, they say; this villainous misleader of youth! —and then if somebody asks them, Why, what evil does he practise or teach?
+Keyword overlap: ['not']
+BM25 rank: 946
+Rank 3 | id apology-0063 | distance 1.190 | greek | Apology | paragraph 59, part 1/2 | words 113
+Some one may wonder why I go about in private giving advice and busying myself with the concerns of others, but do not venture to come forward in public and advise the state. I will tell you why. You have heard me speak at sundry times and in divers places of an oracle or sign which comes to me, and is the divinity which Meletus ridicules in the indictment. This sign, which is a kind of voice, first began to come to me when I was a child; it always forbids but never commands me to do anything which I am going to do. This is what deters me from being a politician.
+Keyword overlap: ['am', 'not']
+BM25 rank: 24
+
+D. I get anxious about things I cannot control
+Rank 1 | id meditations-0486 | distance 1.197 | stoic | Meditations | Book 10, item 12 | words 111
+What need is there of suspicious fear, since it is in thy power to inquire what ought to be done? And if thou seest clear, go by this way content, without turning back; but if thou dost not see clear, stop and take the best advisers. But if any other things oppose thee, go on according to thy powers with due consideration, keeping to that which appears to be just. For it is best to reach this object, and if thou dost fail, let thy failure be in attempting this. He who follows reason in all things is both tranquil and active at the same time, and also cheerful and collected.
+Keyword overlap: ['things']
+BM25 rank: 612
+Rank 2 | id analects-0241 | distance 1.250 | confucian | Analects | Book 16, chapter 10 | words 138
+Confucius said, 'The superior man has nine things which are subjects with him of thoughtful consideration. In regard to the use of his eyes, he is anxious to see clearly. In regard to the use of his ears, he is anxious to hear distinctly. In regard to his countenance, he is anxious that it should be benign. In regard to his demeanor, he is anxious that it should be respectful. In regard to his speech, he is anxious that it should be sincere. In regard to his doing of business, he is anxious that it should be reverently careful. In regard to what he doubts about, he is anxious to question others. When he is angry, he thinks of the difficulties (his anger may involve him in). When he sees gain to be got, he thinks of righteousness.'
+Keyword overlap: ['about', 'anxious', 'things']
+BM25 rank: 5
+Rank 3 | id meditations-0206 | distance 1.262 | stoic | Meditations | Book 6, item 10 | words 99
+The universe is either a confusion, and a mutual involution of things, and a dispersion, or it is unity and order and providence. If then it is the former, why do I desire to tarry in a fortuitous combination of things and such a disorder? and why do I care about anything else than how I shall at last become earth? and why am I disturbed, for the dispersion of my elements will happen whatever I do? But if the other supposition is true, I venerate, and I am firm, and I trust in him who governs (iv. 27).
+Keyword overlap: ['about', 'things']
+BM25 rank: 24
+
+E. being humble gets you further than showing off
+Rank 1 | id meditations-0317 | distance 1.159 | stoic | Meditations | Book 7, item 52 | words 37
+Another may be more expert in casting his opponent; but he is not more social, nor more modest, nor better disciplined to meet all that happens, nor more considerate with respect to the faults of his neighbors.
+Keyword overlap: []
+BM25 rank: 812
+Rank 2 | id analects-0185 | distance 1.162 | confucian | Analects | Book 13, chapters 25-26 | words 115
+The Master said, 'The superior man is easy to serve and difficult to please. If you try to please him in any way which is not accordant with right, he will not be pleased. But in his employment of men, he uses them according to their capacity. The mean man is difficult to serve, and easy to please. If you try to please him, though it be in a way which is not accordant with right, he may be pleased. But in his employment of men, he wishes them to be equal to everything.' The Master said, 'The superior man has a dignified ease without pride. The mean man has pride without a dignified ease.'
+Keyword overlap: []
+BM25 rank: 240
+Rank 3 | id meditations-0601 | distance 1.199 | stoic | Meditations | Book 12, item 24, part 2/2 | words 86
+Third, if thou shouldst suddenly be raised up above the earth, and shouldst look down on human things, and observe the variety of them how great it is, and at the same time also shouldst see at a glance how great is the number of beings who dwell all around in the air and the ether, consider that as often as thou shouldst be raised up, thou wouldst see the same things, sameness of form and shortness of duration. Are these things to be proud of?
+Keyword overlap: []
+BM25 rank: 1033
+
+F. I was blamed for something I did not do
+Rank 1 | id meditations-0587 | distance 0.917 | stoic | Meditations | Book 12, item 12 | words 47
+With respect to that which happens conformably to nature, we ought to blame neither gods, for they do nothing wrong either voluntarily or involuntarily, nor men, for they do nothing wrong except involuntarily. Consequently we should blame nobody (ii. 11, 12, 13; vii. 62; 18 viii. 17).
+Keyword overlap: []
+BM25 rank: 409
+Rank 2 | id meditations-0472 | distance 0.998 | stoic | Meditations | Book 10, item 4 | words 26
+If a man is mistaken, instruct him kindly and show him his error. But if thou art not able, blame thyself, or blame not even thyself.
+Keyword overlap: ['not']
+BM25 rank: 823
+Rank 3 | id meditations-0363 | distance 1.046 | stoic | Meditations | Book 8, item 17 | words 87
+If a thing is in thy own power, why dost thou do it? but if it is in the power of another, whom dost thou blame,--the atoms [chance] or the gods? Both are foolish. Thou must blame nobody. For if thou canst, correct [that which is the cause]; but if thou canst not do this, correct at least the thing itself; but if thou canst not do even this, of what use is it to thee to find fault? for nothing should be done without a purpose.
+Keyword overlap: ['not']
+BM25 rank: 369
+
+G. my elderly parents need me, how should I treat them
+Rank 1 | id apology-0072 | distance 1.158 | greek | Apology | paragraph 62, part 2/4 | words 109
+If I am or have been corrupting the youth, those of them who are now grown up and have become sensible that I gave them bad advice in the days of their youth should come forward as accusers, and take their revenge; or if they do not like to come themselves, some of their relatives, fathers, brothers, or other kinsmen, should say what evil their families have suffered at my hands. Now is their time. Many of them I see in the court. There is Crito, who is of the same age and of the same deme with myself, and there is Critobulus his son, whom I also see.
+Keyword overlap: []
+BM25 rank: 41
+Rank 2 | id apology-0105 | distance 1.346 | greek | Apology | paragraph 74 | words 131
+Still I have a favour to ask of them. When my sons are grown up, I would ask you, O my friends, to punish them; and I would have you trouble them, as I have troubled you, if they seem to care about riches, or anything, more than about virtue; or if they pretend to be something when they are really nothing,—then reprove them, as I have reproved you, for not caring about that for which they ought to care, and thinking that they are something when they are really nothing. And if you do this, both I and my sons will have received justice at your hands. The hour of departure has arrived, and we go our ways—I to die, and you to live. Which is better God only knows.
+Keyword overlap: []
+BM25 rank: 80
+Rank 3 | id analects-0004 | distance 1.391 | confucian | Analects | Book 1, chapter 6 | words 56
+The Master said, 'A youth, when at home, should be filial, and, abroad, respectful to his elders. He should be earnest and truthful. He should overflow in love to all, and cultivate the friendship of the good. When he has time and opportunity, after the performance of these things, he should employ them in polite studies.'
+Keyword overlap: []
+BM25 rank: 150
+
+PART 3 - threshold stress test
+
+Off-topic: query | best distance | 5th distance | top-1 first 100 characters
+what is the capital of France | 1.679 | 1.810 | Perhaps you think that I am braving you in what I am saying now, as in what I said before about the 
+how to bake sourdough bread | 1.560 | 1.746 | The one is a philosopher without a tunic, and the other without a book: here is another half naked: 
+latest iPhone battery life | 1.703 | 1.748 | Examine into the quality of the form of an object, and detach it altogether from its material part, 
+who won the world cup | 1.757 | 1.838 | The Master said, 'When the music master Chih first entered on his office, the finish of the Kwan Tsu
+how do I fix a flat bicycle tire | 1.724 | 1.756 | It is not fit that I should give myself pain, for I have never intentionally given pain even to anot
+python list comprehension | 1.612 | 1.657 | 1. The Duke Ai inquired of Yu Zo, saying, 'The year is one of scarcity, and the returns for expendit
+weather forecast for tomorrow | 1.523 | 1.659 | I am that gadfly which God has attached to the state, and all day long and in all places am always f
+how to train for a marathon | 1.513 | 1.703 | The difficulty, my friends, is not to avoid death, but to avoid unrighteousness; for that runs faste
+the plot of Star Wars | 1.343 | 1.434 | And,-- "Life's harvest reap like the wheat's fruitful ear." And other things of the same kind. After
+how to write a cover letter | 1.463 | 1.705 | Contemplate the formative principles [forms] of things bare of their coverings; the purposes of acti
+
+Adjacent modern life: query | best distance | 5th distance | top-1 first 100 characters
+how do I choose a college major | 1.576 | 1.691 | Enter into every man's ruling faculty; and also let every other man enter into thine.
+should I quit my job to start a company | 1.486 | 1.552 | If it is not right, do not do it: if it is not true, do not say it. [For let thy efforts be--]
+is social media making people lonely | 1.407 | 1.493 | No man is tired of receiving what is useful. But it is useful to act according to nature. Do not the
+how do I make friends in a new city | 1.469 | 1.661 | Take pleasure in one thing and rest in it, in passing from one social act to another social act, thi
+what is a good way to deal with a difficult boss | 1.309 | 1.363 | The Master said, 'Hard is it to deal with him, who will stuff himself with food the whole day, witho
+
+PART 4 - short chunks
+
+Query: is it better to lead by force or by example
+Unfiltered
+1 | 1.210 | meditations-0146 | Meditations | Book 4, item 51 | words 41 | Always run to the short way; and the short way is the natural: accordingly say and do everything in conformity with the soundest reason. For such a purpose frees a man from trouble,+ and warfare, and 
+2 | 1.271 | meditations-0178 | Meditations | Book 5, item 20 | words 128 | In one respect man is the nearest thing to me, so far as I must do good to men and endure them. But so far as some men make themselves obstacles to my proper acts, man becomes to me one of the things 
+3 | 1.326 | tao-te-ching-0092 | Tao Te Ching | Chapter 69 | words 126 | A master of the art of war has said, 'I do not dare to be the host (to commence the war); I prefer to be the guest (to act on the defensive). I do not dare to advance an inch; I prefer to retire a foo
+where={"words": {"$gte": 25}}
+1 | 1.210 | meditations-0146 | Meditations | Book 4, item 51 | words 41 | Always run to the short way; and the short way is the natural: accordingly say and do everything in conformity with the soundest reason. For such a purpose frees a man from trouble,+ and warfare, and 
+2 | 1.271 | meditations-0178 | Meditations | Book 5, item 20 | words 128 | In one respect man is the nearest thing to me, so far as I must do good to men and endure them. But so far as some men make themselves obstacles to my proper acts, man becomes to me one of the things 
+3 | 1.326 | tao-te-ching-0092 | Tao Te Ching | Chapter 69 | words 126 | A master of the art of war has said, 'I do not dare to be the host (to commence the war); I prefer to be the guest (to act on the defensive). I do not dare to advance an inch; I prefer to retire a foo
+
+Query: a leader who does not need to boast
+Unfiltered
+1 | 1.105 | analects-0097 | Analects | Book 8, chapters 13-14 | words 117 | 1. The Master said, 'With sincere faith he unites the love of learning; holding firm to death, he is perfecting the excellence of his course. 2. 'Such an one will not enter a tottering State, nor dwel
+2 | 1.150 | tao-te-ching-0046 | Tao Te Ching | Chapter 33 | words 68 | He who knows other men is discerning; he who knows himself is intelligent. He who overcomes others is strong; he who overcomes himself is mighty. He who is satisfied with his lot is rich; he who goes 
+3 | 1.161 | analects-0178 | Analects | Book 13, chapters 16-17 | words 78 | 1. The Duke of Sheh asked about government. 2. The Master said, 'Good government obtains, when those who are near are made happy, and those who are far off are attracted.' Tsze-hsia, being governor of
+where={"words": {"$gte": 25}}
+1 | 1.105 | analects-0097 | Analects | Book 8, chapters 13-14 | words 117 | 1. The Master said, 'With sincere faith he unites the love of learning; holding firm to death, he is perfecting the excellence of his course. 2. 'Such an one will not enter a tottering State, nor dwel
+2 | 1.150 | tao-te-ching-0046 | Tao Te Ching | Chapter 33 | words 68 | He who knows other men is discerning; he who knows himself is intelligent. He who overcomes others is strong; he who overcomes himself is mighty. He who is satisfied with his lot is rich; he who goes 
+3 | 1.161 | analects-0178 | Analects | Book 13, chapters 16-17 | words 78 | 1. The Duke of Sheh asked about government. 2. The Master said, 'Good government obtains, when those who are near are made happy, and those who are far off are attracted.' Tsze-hsia, being governor of
+
+Query: is it right to disobey an unjust order
+Unfiltered
+1 | 0.980 | meditations-0438 | Meditations | Book 9, item 20 | words 18 | It is thy duty to leave another man's wrongful act there where it is (vii. 29; ix. 38).
+2 | 1.036 | meditations-0378 | Meditations | Book 8, item 32 | words 123 | It is thy duty to order thy life well in every single act; and if every act does its duty as far as is possible, be content; and no one is able to hinder thee so that each act shall not do its duty.--
+3 | 1.044 | meditations-0421 | Meditations | Book 9, item 5 | words 19 | He often acts unjustly who does not do a certain thing; not only he who does a certain thing.
+where={"words": {"$gte": 25}}
+1 | 1.036 | meditations-0378 | Meditations | Book 8, item 32 | words 123 | It is thy duty to order thy life well in every single act; and if every act does its duty as far as is possible, be content; and no one is able to hinder thee so that each act shall not do its duty.--
+2 | 1.105 | meditations-0544 | Meditations | Book 11, item 18, part 2/8 | words 133 | Second, consider what kind of men they are at table, in bed, and so forth; and particularly, under what compulsions in respect of opinions they are; and as to their acts, consider with what pride they
+3 | 1.122 | tao-te-ching-0004 | Tao Te Ching | Chapter 3 | words 119 | Not to value and employ men of superior ability is the way to keep the people from rivalry among themselves; not to prize articles which are difficult to procure is the way to keep them from becoming 
+
+PART 5 - stray symbols
+
+'+' U+002B PLUS SIGN: 50 occurrences
+  meditations-0010: pinions without consideration:+ he had the power of readily 
+  meditations-0016: I learned from him also + consistency and undeviating steadi
+  meditations-0018:  He had also the art of being humorous in an agreeable way.+
+
+'’' U+2019 RIGHT SINGLE QUOTATION MARK: 2 occurrences
+  apology-0051: and danger? For wherever a man’s place is, whether the place
+  apology-0052: s me to fulfil the philosopher’s mission of searching into m
+
+'“' U+201C LEFT DOUBLE QUOTATION MARK: 17 occurrences
+  apology-0009:  their words in an affidavit: “Socrates is an evil-doer, and
+  apology-0013: hat he had sons, I asked him: “Callias,” I said, “if your tw
+  apology-0014: have sons; is there any one?” “There is,” he said. “Who is h
+
+'”' U+201D RIGHT DOUBLE QUOTATION MARK: 17 occurrences
+  apology-0009: er cause; and he teaches the aforesaid doctrines to others.”
+  apology-0013: d sons, I asked him: “Callias,” I said, “if your two sons we
+  apology-0014: u have sons; is there any one?” “There is,” he said. “Who is
+
+Chunks with Roman-numeral/digit citation-style parentheticals: 37
+Definition: parentheses containing only Roman-numeral letters, digits, periods, semicolons and spaces, with at least one numeral/digit.
+  meditations-0046: ['(vi. 28)']
+  meditations-0111: ['(vii. 29.)']
+  meditations-0133: ['(i. c. 19)']
+  meditations-0205: ['(xi. 1; vi. 40; viii. 50)']
+  meditations-0206: ['(iv. 27)']
+
+Verified unchanged: all 1,124 stored IDs, embeddings, documents, metadata, collection configuration, and chunks.jsonl bytes.
+chunks.jsonl SHA256: 31b5ad8f53db0c7e73cbcad24b0c8ff7bae7a2fe3bfbc1ba9c8c8dd749e095d8

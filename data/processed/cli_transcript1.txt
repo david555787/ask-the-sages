@@ -1,0 +1,161 @@
+Stored passages: 1124; user-added: 0
+
+- My Sages -
+1. Ask a question
+2. Add a passage
+3. Show what is stored
+4. Delete my added passages
+5. Quit
+Choice: 1
+Question: what makes a person truly wise
+Question: what makes a person truly wise
+
+4 of 4 traditions had a passage.
+
+Confucian | Analects | Book 6, chapters 20-21
+Translator: James Legge
+strong | distance 0.900
+Fan Ch'ih asked what constituted wisdom. The Master said, 'To give one's self earnestly
+to the duties due to men, and, while respecting spiritual beings, to keep aloof from
+them, may be called wisdom.' He asked about perfect virtue. The Master said, 'The man of
+virtue makes the difficulty to be overcome his first business, and success only a
+subsequent consideration;-- this may be called perfect virtue.' The Master said, 'The
+wise find pleasure in water; the virtuous find pleasure in hills. The wise are active;
+the virtuous are tranquil. The wise are joyful; the virtuous are long-lived.'
+
+Daoist | Tao Te Ching | Chapter 49
+Translator: James Legge
+strong | distance 0.841
+The sage has no invariable mind of his own; he makes the mind of the people his mind. To
+those who are good (to me), I am good; and to those who are not good (to me), I am also
+good;--and thus (all) get to be good. To those who are sincere (with me), I am sincere;
+and to those who are not sincere (with me), I am also sincere;--and thus (all) get to be
+sincere. The sage has in the world an appearance of indecision, and keeps his mind in a
+state of indifference to all. The people all keep their eyes and ears directed to him,
+and he deals with them all as his children.
+
+Stoic | Meditations | Book 1, item 8
+Translator: George Long
+strong | distance 0.915
+From Apollonius I learned freedom of will and undeviating steadiness of purpose; and to
+look to nothing else, not even for a moment, except to reason; and to be always the
+same, in sharp pains, on the occasion of the loss of a child, and in long illness; and
+to see clearly in a living example that the same man can be both most resolute and
+yielding, and not peevish in giving his instruction; and to have had before my eyes a
+man who clearly considered his experience and his skill in expounding philosophical
+principles as the smallest of his merits; and from him I learned how to receive from
+friends what are esteemed favors, without being either humbled by them or letting them
+pass unnoticed.
+
+Greek | Apology | paragraph 10, part 1/2
+Translator: Benjamin Jowett
+strong | distance 0.726
+This inquisition has led to my having many enemies of the worst and most dangerous kind,
+and has given occasion also to many calumnies. And I am called wise, for my hearers
+always imagine that I myself possess the wisdom which I find wanting in others: but the
+truth is, O men of Athens, that God only is wise; and by his answer he intends to show
+that the wisdom of men is worth little or nothing; he is not speaking of Socrates, he is
+only using my name by way of illustration, as if he said, He, O men, is the wisest, who,
+like Socrates, knows that his wisdom is in truth worth nothing.
+
+These are the closest passages in the translations I loaded, not answers. A small
+distance does not guarantee relevance.
+
+- My Sages -
+1. Ask a question
+2. Add a passage
+3. Show what is stored
+4. Delete my added passages
+5. Quit
+Choice: 2
+Existing traditions: confucian, daoist, stoic, greek
+You may enter an existing tradition or a new label.
+Tradition: cli-test
+Title: Orbital garden CLI test
+Source note (optional): Made-up test passage
+Paste passage text. Finish with a line containing only END.
+> On the orbital greenhouse station, the gardener uses a purple umbrella to shield tomato seedlings from artificial meteor showers. When the alarm sounds, she closes the silver roof and waits until the simulated hail stops before watering the plants.
+> END
+Added 1 new chunk(s); 0 already present.
+IDs: user-79daf221d986
+The passage is searchable now.
+
+- My Sages -
+1. Ask a question
+2. Add a passage
+3. Show what is stored
+4. Delete my added passages
+5. Quit
+Choice: 1
+Question: How does the gardener on an orbital greenhouse protect tomato seedlings during an artificial meteor shower?
+Question: How does the gardener on an orbital greenhouse protect tomato seedlings during
+an artificial meteor shower?
+
+2 of 5 traditions had a passage.
+
+Confucian | none | distance 1.764 This tradition has no close passage.
+
+Daoist | none | distance 1.652 This tradition has no close passage.
+
+Stoic | Meditations | Book 6, item 54
+Translator: George Long
+weak | distance 1.356
+weak match: read with caution
+That which is not good for the swarm, neither is it good for the bee.
+
+Greek | none | distance 1.730 This tradition has no close passage.
+
+Cli-Test | Orbital garden CLI test | user-added
+Translator: Made-up test passage
+strong | distance 0.491
+On the orbital greenhouse station, the gardener uses a purple umbrella to shield tomato
+seedlings from artificial meteor showers. When the alarm sounds, she closes the silver
+roof and waits until the simulated hail stops before watering the plants.
+
+These are the closest passages in the translations I loaded, not answers. A small
+distance does not guarantee relevance.
+
+- My Sages -
+1. Ask a question
+2. Add a passage
+3. Show what is stored
+4. Delete my added passages
+5. Quit
+Choice: 3
+Stored passages: 1125; user-added: 1
+By tradition:
+  Confucian: 299
+  Daoist: 105
+  Stoic: 615
+  Greek: 105
+  Cli-Test: 1
+By work:
+  Analects: 299
+  Apology: 105
+  Meditations: 615
+  Orbital garden CLI test: 1
+  Tao Te Ching: 105
+User-added passages:
+user-79daf221d986 | cli-test | Orbital garden CLI test | user-added | 39 words
+  On the orbital greenhouse station, the gardener uses a purple umbrella to shield
+
+- My Sages -
+1. Ask a question
+2. Add a passage
+3. Show what is stored
+4. Delete my added passages
+5. Quit
+Choice: 4
+user-79daf221d986 | cli-test | Orbital garden CLI test | user-added | 39 words
+  On the orbital greenhouse station, the gardener uses a purple umbrella to shield
+Type YES to delete these user-added passages: YES
+Deleted 1 user-added passage(s). Built-in passages were not touched.
+
+- My Sages -
+1. Ask a question
+2. Add a passage
+3. Show what is stored
+4. Delete my added passages
+5. Quit
+Choice: 5
+Goodbye.
