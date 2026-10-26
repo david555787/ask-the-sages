@@ -5,8 +5,12 @@ Timings include query-text embedding and search, after model warm-up.
 """
 
 import copy
+import argparse
+import json
 from pathlib import Path
 from statistics import mean
+import subprocess
+import sys
 from time import perf_counter
 
 import chromadb
@@ -39,7 +43,7 @@ def assert_records_unchanged(collection, before: dict) -> None:
         assert np.array_equal(after["embeddings"][i], before["embeddings"][old]), record_id
 
 
-def main() -> int | None:
+def main(worker_value: int | None = None) -> int | None:
     if not Path("./chroma_store").is_dir():
         raise FileNotFoundError("Run from the repository root containing chroma_store")
     assert chromadb.__version__ == "1.5.9", "Recheck configuration API for this version"
@@ -69,12 +73,29 @@ def main() -> int | None:
         exact.append((top5, filtered))
 
     outcomes = []
-    for value in EF_VALUES:
+    for value in ((worker_value,) if worker_value is not None else EF_VALUES):
         # Installed Collection.modify passes configuration to rust.update_collection;
         # UpdateHNSWConfiguration explicitly supports ef_search in Chroma 1.5.9.
         collection.modify(configuration={"hnsw": {"ef_search": value}})
         collection = client.get_collection(name="sages")
         assert collection.configuration["hnsw"]["ef_search"] == value
+        if worker_value is None:
+            # A live index retained its old runtime ef in our first experiment.
+            # Reopen in a separate interpreter after each persisted modification.
+            completed = subprocess.run(
+                [sys.executable, str(Path(__file__).resolve()), "--worker", str(value)],
+                capture_output=True, text=True,
+            )
+            if completed.returncode:
+                print(completed.stdout, end="", flush=True)
+                print(completed.stderr, end="", file=sys.stderr, flush=True)
+                raise RuntimeError(f"Fresh-process benchmark failed for ef_search={value}")
+            marker = "BENCHMARK_RESULT: "
+            result_lines = [line for line in completed.stdout.splitlines() if line.startswith(marker)]
+            assert len(result_lines) == 1
+            outcomes.append(tuple(json.loads(result_lines[0][len(marker):])))
+            print("\n".join(line for line in completed.stdout.splitlines() if not line.startswith(marker)), flush=True)
+            continue
         print(f"\nef_search={value}", flush=True)
         print("query | exact top-5 overlap | confucian | daoist | stoic | greek", flush=True)
         unfiltered_times = []
@@ -104,6 +125,12 @@ def main() -> int | None:
         print(f"Unfiltered mean: {mean(unfiltered_times)*1000:.3f} ms; filtered mean: {mean(filtered_times)*1000:.3f} ms", flush=True)
         outcomes.append((value, perfect_queries, correct_pairs, average_ms))
 
+    if worker_value is not None:
+        assert_records_unchanged(collection, before)
+        assert collection.configuration_json == original_configuration
+        print("BENCHMARK_RESULT: " + json.dumps(outcomes[0]))
+        return None
+
     passing = [value for value, queries, pairs, _ in outcomes if queries == 14 and pairs == 56]
     selected = min(passing) if passing else None
     final_ef = selected if selected is not None else original_ef
@@ -126,4 +153,6 @@ def main() -> int | None:
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--worker", type=int, choices=EF_VALUES, help=argparse.SUPPRESS)
+    main(parser.parse_args().worker)

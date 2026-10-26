@@ -79,6 +79,7 @@ def print_tradition_comparison(collection, query: str) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Explore sages with one query per quoted command-line argument.")
+    parser.add_argument("--full-top3", action="store_true", help="Print full text for the top 3 instead of top-5 previews")
     parser.add_argument("queries", nargs="+", help="Query text (quote each query containing spaces)")
     args = parser.parse_args()
     if any(not query.strip() for query in args.queries):
@@ -99,16 +100,20 @@ def main() -> None:
     for number, (category, query) in enumerate(queries, 1):
         print(f"\nQuery {number} [{category}]: {query}", flush=True)
         results = collection.query(query_texts=[query], n_results=5, include=INCLUDE)
-        if number == 1:
+        if number == 1 and not args.full_top3:
             print("Full raw results object:")
             print(results)
-        print("rank | distance | tradition | work | section | words | first 150 characters")
+        text_label = "full text" if args.full_top3 else "first 150 characters"
+        print(f"rank | distance | tradition | work | section | words | {text_label}")
         for rank, (distance, metadata, document) in enumerate(
             zip(results["distances"][0], results["metadatas"][0], results["documents"][0], strict=True), 1
         ):
+            if args.full_top3 and rank > 3:
+                continue
+            text = document if args.full_top3 else document[:150]
             print(
                 f"{rank} | {distance:.3f} | {metadata['tradition']} | {metadata['work']} | "
-                f"{metadata['section']} | {metadata['words']} | {document[:150]}"
+                f"{metadata['section']} | {metadata['words']} | {text}"
             )
             if rank <= 3:
                 print(f"  Keyword overlap (rank {rank}): {keyword_overlap(query, document)}")
@@ -120,7 +125,8 @@ def main() -> None:
     for number, query, best, fifth, words in summary:
         print(f"{number} | {query} | {best:.3f} | {fifth:.3f} | {words}")
 
-    print_tradition_comparison(collection, queries[0][1])
+    if not args.full_top3:
+        print_tradition_comparison(collection, queries[0][1])
     assert collection.count() == before_count, "Collection count changed during exploration"
     assert stored_records(collection) == before_records, "Stored records changed during exploration"
     print(f"\nVerified unchanged: {before_count} IDs, documents, and metadata records.")

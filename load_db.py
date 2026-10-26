@@ -13,6 +13,7 @@ from chunking import word_count
 INPUT = Path(__file__).resolve().parent / "data" / "processed" / "chunks.jsonl"
 BATCH_SIZE = 100
 FIRST_BATCH_SIZE = 50
+EF_SEARCH = 200  # Smallest tested value with perfect recall on the 14-query audit.
 METADATA_FIELDS = ("tradition", "work", "section", "translator")
 
 
@@ -42,7 +43,11 @@ def metadata(chunk: dict) -> dict:
 def main() -> None:
     chunks = read_chunks()
     client = chromadb.PersistentClient(path="./chroma_store")
-    collection = client.get_or_create_collection(name="sages")
+    # Installed 1.5.9 accepts this creation configuration. For an existing
+    # collection it is ignored; tune_ef.py handles updates and fresh-process tests.
+    collection = client.get_or_create_collection(
+        name="sages", configuration={"hnsw": {"ef_search": EF_SEARCH}}
+    )
     total = len(chunks)
     print(f"Input: {total} chunks; existing sages count: {collection.count()}", flush=True)
 
