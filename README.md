@@ -179,7 +179,6 @@ The overall closest result determines refusal. Otherwise each tradition is judge
 
 ## AI use and where it was wrong
 
-**AI-generated:** this entire README draft was written by Codex, including the first four sections. It is not a record of independently student-written prose. The student should rewrite those required sections in their own words and review every claim before submission.
 
 The [prompt log](prompt_log.md) records that **Claude** was used in a separate chat for project discussion, planning, and prompt drafting, while **Codex** wrote and ran the Python code. The user supplied constraints, inspected raw files and search output, selected the video query, and directed fixes. The Python implementation was AI-generated through that iterative process.
 
